@@ -28,10 +28,10 @@ namespace PeliculasAPI.Servicios
             string contenedor, string ruta, string contentType)
         {
             await BorrarArchivo(ruta, contenedor);
-            return await EditarArchivo(contenido, extension, contenedor, contentType);
+            return await GuardarArchivo(contenido, extension, contenedor, contentType);
         }
 
-        public async Task<string> EditarArchivo(byte[] contenido, string extension,
+        public async Task<string> GuardarArchivo(byte[] contenido, string extension,
             string contenedor, string contentType)
         {
             var cliente = new BlobContainerClient(connectionString, contenedor);

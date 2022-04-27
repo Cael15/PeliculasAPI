@@ -18,11 +18,13 @@ namespace PeliculasAPI
             services.AddAutoMapper(typeof(Startup));
 
             services.AddTransient<IAlmacenadorArchivos, AlmacenadorArchivosAzure>();
+            services.AddHttpContextAccessor();
 
             services.AddDbContext<ApplicationDbContext>(option => 
             option.UseSqlServer(Configuration.GetConnectionString("DefaultConection")));
 
-            services.AddControllers();
+            services.AddControllers()
+                .AddNewtonsoftJson();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

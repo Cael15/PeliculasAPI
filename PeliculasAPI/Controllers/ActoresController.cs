@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PeliculasAPI.DTOs;
@@ -31,7 +32,7 @@ namespace PeliculasAPI.Controllers
             return mapper.Map<List<ActorDTO>>(entidades);
         }
 
-        [HttpGet("{id}", Name = "ObtenerActor")]
+        [HttpGet("{id}", Name = "obtenerActor")]
         public async Task<ActionResult<ActorDTO>> Get(int id)
         {
             var entidad = await context.Actores.FirstOrDefaultAsync(x => x.Id == id);
@@ -55,14 +56,15 @@ namespace PeliculasAPI.Controllers
                     await actorCreacionDTO.Foto.CopyToAsync(memoryStream);
                     var contenido = memoryStream.ToArray();
                     var extension = Path.GetExtension(actorCreacionDTO.Foto.FileName);
-                    entidad.Foto = await almacenadorArchivos.EditarArchivo(contenido, extension, contenedor,
+                    entidad.Foto = await almacenadorArchivos.GuardarArchivo(contenido, extension, contenedor,
                         actorCreacionDTO.Foto.ContentType);
                 }
             }
+
             context.Add(entidad);
-            //await context.SaveChangesAsync();
+            await context.SaveChangesAsync();
             var dto = mapper.Map<ActorDTO>(entidad);
-            return new CreatedAtRouteResult("ObtenerActor", new { id = entidad.Id }, dto);
+            return new CreatedAtRouteResult("obtenerActor", new { id = entidad.Id }, dto);
         }
 
         [HttpPut("{id}")]
@@ -91,6 +93,39 @@ namespace PeliculasAPI.Controllers
             return NoContent();
         }
 
+        [HttpPatch("{id}")]
+        public async Task<ActionResult> Patch(int id, [FromBody] JsonPatchDocument<ActorPatchDTO> patchDocument)
+        {
+            if (patchDocument == null)
+            {
+                return BadRequest();
+            }
+
+            var entidadDB = await context.Actores.FirstOrDefaultAsync(x => x.Id == id);
+
+            if (entidadDB == null)
+            {
+                return NotFound();
+            }
+
+            var entidadDTO = mapper.Map<ActorPatchDTO>(entidadDB);
+
+            patchDocument.ApplyTo(entidadDTO, ModelState);
+
+            var esValido = TryValidateModel(entidadDTO);
+
+            if (!esValido)
+            {
+                return BadRequest(ModelState);
+            }
+
+            mapper.Map(entidadDTO, entidadDB);
+
+            await context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
@@ -102,6 +137,7 @@ namespace PeliculasAPI.Controllers
             }
 
             context.Remove(new Actor() { Id = id });
+            await context.SaveChangesAsync();
 
             return NoContent();
         }
