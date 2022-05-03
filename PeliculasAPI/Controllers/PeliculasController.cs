@@ -15,7 +15,7 @@ namespace PeliculasAPI.Controllers
         private readonly ApplicationDbContext context;
         private readonly IMapper mapper;
         private readonly IAlmacenadorArchivos almacenadorArchivos;
-        private readonly string contenedor = "Pelicula";
+        private readonly string contenedor = "pelicula";
         public PeliculasController(ApplicationDbContext context, IMapper mapper, IAlmacenadorArchivos almacenadorArchivos)
         {
             this.context = context;
@@ -60,16 +60,31 @@ namespace PeliculasAPI.Controllers
                 }
             }
 
+            AsignarOrdenActores(pelicula);
             context.Add(pelicula);
             await context.SaveChangesAsync();
             var peliculaDTO = mapper.Map<PeliculaDTO>(pelicula);
             return new CreatedAtRouteResult("obtenerPelicula", new { id = pelicula.Id }, peliculaDTO);
         }
 
+        private void AsignarOrdenActores(Pelicula pelicula)
+        {
+            if (pelicula.PeliculasActores != null)
+            {
+                for (int i = 0; i < pelicula.PeliculasActores.Count; i++)
+                {
+                    pelicula.PeliculasActores[i].Orden = i;
+                }
+            }
+        }
+
         [HttpPut("{id}")]
         public async Task<ActionResult> Put(int id, [FromForm] PeliculaCreacionDTO peliculaCreacionDTO)
         {
-            var PeliculaDB = await context.Actores.FirstOrDefaultAsync(x => x.Id == id);
+            var PeliculaDB = await context.Peliculas
+                .Include(x => x.PeliculasActores)
+                .Include(x => x.PeliculasActores)
+                .FirstOrDefaultAsync(x => x.Id == id);
 
             if (PeliculaDB == null) { return NotFound(); }
 
@@ -82,12 +97,13 @@ namespace PeliculasAPI.Controllers
                     await peliculaCreacionDTO.Poster.CopyToAsync(memoryStream);
                     var contenido = memoryStream.ToArray();
                     var extension = Path.GetExtension(peliculaCreacionDTO.Poster.FileName);
-                    PeliculaDB.Foto = await almacenadorArchivos.EditarArchivo(contenido, extension, contenedor,
-                        PeliculaDB.Foto,
+                    PeliculaDB.Poster = await almacenadorArchivos.EditarArchivo(contenido, extension, contenedor,
+                        PeliculaDB.Poster,
                         peliculaCreacionDTO.Poster.ContentType);
                 }
             }
 
+            AsignarOrdenActores(PeliculaDB);
             await context.SaveChangesAsync();
             return NoContent();
         }
