@@ -30,6 +30,8 @@ namespace PeliculasAPI
 
             services.AddSingleton<GeometryFactory>(NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326));
 
+            services.AddScoped<PeliculaExisteAttribute>();
+
             services.AddSingleton(provider =>
             
             new MapperConfiguration(config =>
@@ -58,10 +60,10 @@ namespace PeliculasAPI
                    {
                        ValidateIssuer = false,
                        ValidateAudience = false,
-                       ValidateLifetime = true,
+                       ValidateLifetime = true, 
                        ValidateIssuerSigningKey = true,
                        IssuerSigningKey = new SymmetricSecurityKey(
-                   Encoding.UTF8.GetBytes(Configuration["  :key"])),
+                   Encoding.UTF8.GetBytes(Configuration["jwt:key"])),
                        ClockSkew = TimeSpan.Zero
                    }
                );
