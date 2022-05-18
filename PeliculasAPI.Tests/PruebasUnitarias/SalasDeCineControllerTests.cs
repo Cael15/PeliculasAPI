@@ -24,7 +24,7 @@ namespace PeliculasAPI.Tests.PruebasUnitarias
             {
                 var salasDeCine = new List<SalaDeCine>()
                 {
-                    new SalaDeCine{Id = 1, Nombre = "CinePlanet", Ubicacion = geometryFactory.CreatePoint(new Coordinate(-77.08359575788853, -12.075651359750395))}
+                    new SalaDeCine{Nombre = "CinePlanet", Ubicacion = geometryFactory.CreatePoint(new Coordinate(-77.08359575788853, -12.075651359750395))}
                 };
 
                 context.AddRange(salasDeCine);

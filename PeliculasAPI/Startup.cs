@@ -47,7 +47,10 @@ namespace PeliculasAPI
             sqlServerOptions => sqlServerOptions.UseNetTopologySuite()
             ));
 
-            services.AddControllers()
+            services.AddControllers(options =>
+            {
+                options.Filters.Add(typeof(FiltroErrores));
+            })
                 .AddNewtonsoftJson();
 
             services.AddIdentity<IdentityUser, IdentityRole>()
